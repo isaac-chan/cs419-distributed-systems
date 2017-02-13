@@ -2,7 +2,10 @@
 HADOOP_DIR=/home/isaac/Downloads/hadoop-2.7.3
 
 #project location dir
-PROJECT_DIR=/home/isaac/IdeaProjects/cs4191
+PROJECT_DIR=/home/isaac/cs419-distributed-systems/sample_wordCount
+
+#build JAR
+cd $PROJECT_DIR;mvn clean package
 
 #remove previous output
 rm -f -d $PROJECT_DIR/output/ --recursive
@@ -14,7 +17,7 @@ $HADOOP_DIR/sbin/start-all.sh
 $HADOOP_DIR/bin/hadoop fs -put $PROJECT_DIR/input/input.txt /input.txt
 
 #run word count JAR
-$HADOOP_DIR/bin/hadoop jar /$PROJECT_DIR/cs419-1-1.0-SNAPSHOT.jar wordCount /input.txt /output/
+$HADOOP_DIR/bin/hadoop jar /$PROJECT_DIR/target/cs419-1-1.0-SNAPSHOT.jar wordCount /input.txt /output/
 
 #get output from HDFS
 $HADOOP_DIR/bin/hadoop fs -get /output/ $PROJECT_DIR/
