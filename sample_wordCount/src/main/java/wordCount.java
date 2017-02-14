@@ -3,7 +3,7 @@
  */
 
 import java.io.IOException;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -23,13 +23,23 @@ public class wordCount {
         private final static IntWritable one = new IntWritable(1);
         private Text word = new Text();
 
+        private int totalwordcounter = 1;
+        private List<String> uniquewords = new ArrayList<String>();
+
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
-            StringTokenizer itr = new StringTokenizer(value.toString());
+            StringTokenizer itr = new StringTokenizer(value.toString().toLowerCase().replaceAll("[^a-zA-Z ]", ""));
             while (itr.hasMoreTokens()) {
                 word.set(itr.nextToken());
                 context.write(word, one);
+
+                uniquewords.add(word.toString());
+                totalwordcounter++;
             }
+            Set<String> uniquewordsSet = new HashSet<String>(uniquewords);
+
+            context.write(new Text("Unique Words: "), new IntWritable(uniquewordsSet.size()));
+            context.write(new Text("Total Words"), new IntWritable(totalwordcounter - 1));
         }
     }
 
