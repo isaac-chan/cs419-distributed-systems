@@ -1,2 +1,7 @@
 *.jar
 *.class
+/sample_wordCount/target/*
+/sample_wordCount/.idea/*
+*.iml
+/BoughtTogether/target/*
+/BoughtTogether/.idea/*
