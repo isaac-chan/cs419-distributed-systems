@@ -1,8 +1,11 @@
 # MapReduce Project
 
 Isaac Chan and Taylor Alexander Brown
+
 CS 419 Distributed Systems
+
 Oregon State University
+
 Winter 2017
 
 ## wordCount
