@@ -39,7 +39,7 @@ public class BoughtTogether {
                 String first = items[i];
                 for (int j=i+1; j<items.length; ++j) {
                     String second = items[j];
-                    Text combination = new Text(first + ", " + second);
+                    Text combination = new Text("(" + first + ", " + second + ")");
                     context.write(combination, one);
                 }
             }
