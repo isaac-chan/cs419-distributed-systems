@@ -25,13 +25,13 @@ public class BoughtTogether {
         public void map(Object key, Text value, Context context)
             throws IOException, InterruptedException {
 
-            /* input lines */
+            /* input lines of case-sensitive items separated by commas */
             String line = value.toString();
 
             /* split comma-separated items */
             String[] items = itemSeparator.split(line);
 
-            /* sort the items to prevent duplicates */
+            /* sort the items to prevent duplicate pairs (x,y) and (y,x) */
             Arrays.sort(items);
 
             /* output combinations */
