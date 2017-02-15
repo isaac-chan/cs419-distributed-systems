@@ -10,7 +10,7 @@ Winter 2017
 
 ## Configuration
 
-Configure Hadoop as a [single node cluster](http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SingleCluster.html).
+Configure Hadoop as a [single node cluster](http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SingleCluster.html) with pseudo-distributed operation.
 
 ## wordCount
 
