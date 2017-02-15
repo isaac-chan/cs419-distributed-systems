@@ -44,7 +44,6 @@ public class BoughtTogether {
                 }
             }
         }
-
     }
 
     /* count the combinations */
@@ -66,7 +65,6 @@ public class BoughtTogether {
             /* write the count */
             context.write(new Text(combination), count);
         }
-
     }
 
     /* entry point */
@@ -87,7 +85,5 @@ public class BoughtTogether {
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
-
     }
-
 }
