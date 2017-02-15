@@ -25,13 +25,13 @@ public class BoughtTogether {
         public void map(Object key, Text value, Context context)
             throws IOException, InterruptedException {
 
-            /* input lines */
+            /* input lines of case-sensitive items separated by commas */
             String line = value.toString();
 
             /* split comma-separated items */
             String[] items = itemSeparator.split(line);
 
-            /* sort the items to prevent duplicates */
+            /* sort the items to prevent duplicate pairs (x,y) and (y,x) */
             Arrays.sort(items);
 
             /* output combinations */
@@ -39,12 +39,11 @@ public class BoughtTogether {
                 String first = items[i];
                 for (int j=i+1; j<items.length; ++j) {
                     String second = items[j];
-                    Text combination = new Text(first + ", " + second);
+                    Text combination = new Text("(" + first + ", " + second + ")");
                     context.write(combination, one);
                 }
             }
         }
-
     }
 
     /* count the combinations */
@@ -66,7 +65,6 @@ public class BoughtTogether {
             /* write the count */
             context.write(new Text(combination), count);
         }
-
     }
 
     /* entry point */
@@ -87,7 +85,5 @@ public class BoughtTogether {
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
-
     }
-
 }
