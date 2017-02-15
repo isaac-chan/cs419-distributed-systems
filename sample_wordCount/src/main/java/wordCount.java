@@ -9,6 +9,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.Counters;
+import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -17,13 +19,17 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class wordCount {
 
+    public enum COUNTERS {
+        TOTALWORDS,
+        REDUCERRUNS
+    };
+
     public static class TokenizerMapper
             extends Mapper<Object, Text, Text, IntWritable> {
 
         private final static IntWritable one = new IntWritable(1);
         private Text word = new Text();
 
-        private int totalwordcounter = 1;
         private List<String> uniquewords = new ArrayList<String>();
 
         public void map(Object key, Text value, Context context
@@ -34,12 +40,14 @@ public class wordCount {
                 context.write(word, one);
 
                 uniquewords.add(word.toString());
-                totalwordcounter++;
+                context.getCounter(COUNTERS.TOTALWORDS).increment(1);
             }
             Set<String> uniquewordsSet = new HashSet<String>(uniquewords);
 
-            context.write(new Text("Unique Words: "), new IntWritable(uniquewordsSet.size()));
-            context.write(new Text("Total Words"), new IntWritable(totalwordcounter - 1));
+            IntWritable num_unique = new IntWritable(uniquewordsSet.size());
+
+            context.write(new Text("Unique Words: "), num_unique);
+            context.write(new Text("Total Words: "), new IntWritable(((int) context.getCounter(COUNTERS.TOTALWORDS).getValue())));
         }
     }
 
@@ -55,7 +63,11 @@ public class wordCount {
                 sum += val.get();
             }
             result.set(sum);
+
+            context.getCounter(COUNTERS.REDUCERRUNS).increment(1);
+
             context.write(key, result);
+
         }
     }
 
