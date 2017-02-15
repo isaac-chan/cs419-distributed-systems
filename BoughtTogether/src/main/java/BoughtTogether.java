@@ -1,5 +1,7 @@
 import java.io.IOException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.Arrays;
 
@@ -14,6 +16,11 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class BoughtTogether {
+
+    public enum COUNTERS {
+        TOTALPAIRS,
+        OTHERCOUNTER
+    };
 
     /* generate combinations of items that were bought together */
     public static class LineMapper
@@ -52,6 +59,8 @@ public class BoughtTogether {
 
         private IntWritable count = new IntWritable();
 
+        private List<String> list_of_pairs = new ArrayList<String>();
+
         public void reduce(Text combination, Iterable<IntWritable> values, Context context)
             throws IOException, InterruptedException {
 
@@ -64,6 +73,11 @@ public class BoughtTogether {
 
             /* write the count */
             context.write(new Text(combination), count);
+
+            context.getCounter(COUNTERS.OTHERCOUNTER).increment(1);
+            if (count.get() >= 1){
+                context.getCounter(COUNTERS.TOTALPAIRS).increment(1);
+            }
         }
     }
 
