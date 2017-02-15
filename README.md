@@ -13,16 +13,16 @@ Winter 2017
 Given an input file with words, sort the words and ouput the number of times the word occurs in the file.
 
 ### Usage
-   Run using cs419-distributed-systems/sample_wordCount/run.sh
+Run using: cs419-distributed-systems/sample_wordCount/run.sh
 
 ### Example Output
-   Total Words:   6
-   Unique Words:  5
-   cow    1
-   jumps  1
-   moon   1
-   over   1
-   the    2
+    Total Words:   6
+    Unique Words:  5
+    cow    1
+    jumps  1
+    moon   1
+    over   1
+    the    2
 
 ## BoughtTogether
 
