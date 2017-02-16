@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.io.DataOutputStream;
 
 import java.util.regex.Pattern;
 import java.util.Arrays;
@@ -12,8 +13,17 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.RecordWriter;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FSDataOutputStream;
 
 public class BoughtTogether {
+
+    /* count the total number of pairs */
+    public enum COUNTERS {
+        TOTALPAIRS
+    };
 
     /* generate combinations of items that were bought together */
     public static class LineMapper
@@ -23,7 +33,7 @@ public class BoughtTogether {
         private final static IntWritable one = new IntWritable(1);
 
         public void map(Object key, Text value, Context context)
-            throws IOException, InterruptedException {
+                throws IOException, InterruptedException {
 
             /* input lines of case-sensitive items separated by commas */
             String line = value.toString();
@@ -53,7 +63,7 @@ public class BoughtTogether {
         private IntWritable count = new IntWritable();
 
         public void reduce(Text combination, Iterable<IntWritable> values, Context context)
-            throws IOException, InterruptedException {
+                throws IOException, InterruptedException {
 
             /* count the combinations */
             int sum = 0;
@@ -61,25 +71,69 @@ public class BoughtTogether {
                 sum += val.get();
             }
             count.set(sum);
+            context.getCounter(COUNTERS.TOTALPAIRS).increment(sum);
 
             /* write the count */
             context.write(new Text(combination), count);
         }
     }
 
+    /* custom formatted file output */
+    public static class FormattedFileOutputFormat
+        extends FileOutputFormat<Text, IntWritable> {
+
+        @Override
+        public RecordWriter<Text, IntWritable> getRecordWriter(TaskAttemptContext arg0)
+                throws IOException, InterruptedException {
+
+            Path path = FileOutputFormat.getOutputPath(arg0);
+            Path fullPath = new Path(path, "part-r-00000");
+            FileSystem fs = path.getFileSystem(arg0.getConfiguration());
+            FSDataOutputStream fileOut = fs.create(fullPath, arg0);
+
+            return new FormattedRecordWriter(fileOut);
+        }
+    }
+
+    /* custom formatted record writer */
+    public static class FormattedRecordWriter
+        extends RecordWriter<Text, IntWritable> {
+
+        private DataOutputStream out;
+
+        public FormattedRecordWriter(DataOutputStream stream) {
+            out = stream;
+        }
+
+        /* print total number of pairs and close */
+        @Override
+        public void close(TaskAttemptContext context)
+                throws IOException, InterruptedException {
+            out.writeBytes("Total Pairs: " + context.getCounter(COUNTERS.TOTALPAIRS).getValue() + "\n");
+            out.close();
+        }
+
+        /* print pairs */
+        @Override
+        public void write(Text key, IntWritable value)
+                throws IOException, InterruptedException {
+            out.writeBytes(key.toString() + " " + value.get() + "\n");
+        }
+    }
+
     /* entry point */
     public static void main(String[] args)
-        throws Exception {
+            throws Exception {
 
         Configuration configuration = new Configuration();
 
         Job job = Job.getInstance(configuration, "bought together");
         job.setJarByClass(BoughtTogether.class);
         job.setMapperClass(LineMapper.class);
-        job.setCombinerClass(CombinationReducer.class);
         job.setReducerClass(CombinationReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
+        job.setOutputFormatClass(FormattedFileOutputFormat.class);
 
         TextInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));

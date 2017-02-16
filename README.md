@@ -43,14 +43,15 @@ Given input files containing lists of rewards card transactions, compute how man
 ### Example Output
 
     $ cat output/part-r-00000
-    (Apples, Bananas)       1
-    (Apples, BeavMoo Milk)  1
-    (Apples, Best Bread)    1
+    (Apples, Bananas) 1
+    (Apples, BeavMoo Milk) 1
+    (Apples, Best Bread) 1
     (Bananas, BeavMoo Milk) 1
-    (Bananas, Best Bread)   1
-    (BeavMoo Milk, Best Bread)      2
-    (BeavMoo Milk, Fluffy Pizza)    1
-    (BeavMoo Milk, Whitey Toothpaste)       1
-    (Best Bread, Fluffy Pizza)      1
+    (Bananas, Best Bread) 1
+    (BeavMoo Milk, Best Bread) 2
+    (BeavMoo Milk, Fluffy Pizza) 1
+    (BeavMoo Milk, Whitey Toothpaste) 1
+    (Best Bread, Fluffy Pizza) 1
     (Best Bread, Whitey Toothpaste) 1
-    (Fluffy Pizza, Whitey Toothpaste)       1
+    (Fluffy Pizza, Whitey Toothpaste) 1
+    Total Pairs: 12
