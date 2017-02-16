@@ -1,8 +1,12 @@
 #hadoop installation dir
-HADOOP_DIR=/home/isaac/Downloads/hadoop-2.7.3
+if [[ -z "$HADOOP_DIR" ]] ; then
+    HADOOP_DIR=/home/isaac/Downloads/hadoop-2.7.3
+fi
 
 #project location dir
-PROJECT_DIR=/home/isaac/cs419-distributed-systems/sample_wordCount
+if [[ -z "$PROJECT_DIR" ]] ; then
+    PROJECT_DIR=/home/isaac/cs419-distributed-systems/sample_wordCount
+fi
 
 #build JAR
 cd $PROJECT_DIR;mvn clean package
@@ -11,13 +15,13 @@ cd $PROJECT_DIR;mvn clean package
 rm -f -d $PROJECT_DIR/output/ --recursive
 
 #start node
-$HADOOP_DIR/sbin/start-all.sh
+$HADOOP_DIR/sbin/start-dfs.sh
 
 #load input text file into HDFS
 $HADOOP_DIR/bin/hadoop fs -put $PROJECT_DIR/input/input.txt /input.txt
 
 #run word count JAR
-$HADOOP_DIR/bin/hadoop jar /$PROJECT_DIR/target/cs419-1-1.0-SNAPSHOT.jar wordCount /input.txt /output/
+$HADOOP_DIR/bin/hadoop jar $PROJECT_DIR/target/cs419-1-1.0-SNAPSHOT.jar wordCount /input.txt /output/
 
 #get output from HDFS
 $HADOOP_DIR/bin/hadoop fs -get /output/ $PROJECT_DIR/
@@ -30,4 +34,4 @@ $HADOOP_DIR/bin/hadoop fs -rm -r -skipTrash /input.txt
 $HADOOP_DIR/bin/hadoop fs -rm -r -skipTrash /output
 
 #stop node
-$HADOOP_DIR/sbin/stop-all.sh
+$HADOOP_DIR/sbin/stop-dfs.sh
