@@ -33,13 +33,13 @@ Given an input file with words, sort the words and ouput the number of times the
 ### Example Output
 
     $ cat output/part-r-00000
-    Total Words:    6
-    Unique Words:   5
-    cow     1
-    jumps   1
-    moon    1
-    over    1
-    the     2
+    1 cow     1
+    2 jumps   1
+    3 moon    1
+    4 over    1
+    5 the     2
+    Unique Words: 5
+    Total WOrds: 6
 
 ## BoughtTogether
 
