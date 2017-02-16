@@ -17,16 +17,23 @@ Configure Hadoop as a [single node cluster](http://hadoop.apache.org/docs/curren
 Given an input file with words, sort the words and ouput the number of times the word occurs in the file.
 
 ### Usage
-Run using: cs419-distributed-systems/sample_wordCount/run.sh
+
+    $ cd sample_wordCount/
+    $ export PROJECT_DIR=`pwd`
+    $ export HADOOP_DIR=/path/to/hadoop-2.7.3
+    $ $HADOOP_DIR/bin/hdfs namenode -format
+    $ ./run.sh
 
 ### Example Output
-    Total Words:   6
-    Unique Words:  5
-    cow    1
-    jumps  1
-    moon   1
-    over   1
-    the    2
+
+    $ cat output/part-r-00000
+    Total Words:    6
+    Unique Words:   5
+    cow     1
+    jumps   1
+    moon    1
+    over    1
+    the     2
 
 ## BoughtTogether
 
