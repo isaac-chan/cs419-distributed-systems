@@ -33,7 +33,7 @@ public class BoughtTogether {
         private final static IntWritable one = new IntWritable(1);
 
         public void map(Object key, Text value, Context context)
-            throws IOException, InterruptedException {
+                throws IOException, InterruptedException {
 
             /* input lines of case-sensitive items separated by commas */
             String line = value.toString();
@@ -63,7 +63,7 @@ public class BoughtTogether {
         private IntWritable count = new IntWritable();
 
         public void reduce(Text combination, Iterable<IntWritable> values, Context context)
-            throws IOException, InterruptedException {
+                throws IOException, InterruptedException {
 
             /* count the combinations */
             int sum = 0;
@@ -123,7 +123,7 @@ public class BoughtTogether {
 
     /* entry point */
     public static void main(String[] args)
-        throws Exception {
+            throws Exception {
 
         Configuration configuration = new Configuration();
 
