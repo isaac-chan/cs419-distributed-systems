@@ -39,7 +39,7 @@ Given an input file with words, sort the words and ouput the number of times the
     4 over    1
     5 the     2
     Unique Words: 5
-    Total WOrds: 6
+    Total Words: 6
 
 ## BoughtTogether
 
