@@ -71,7 +71,7 @@ public class BoughtTogether {
                 sum += val.get();
             }
             count.set(sum);
-            context.getCounter(COUNTERS.TOTALPAIRS).increment(sum);
+            context.getCounter(COUNTERS.TOTALPAIRS).increment(1);
 
             /* write the count */
             context.write(new Text(combination), count);

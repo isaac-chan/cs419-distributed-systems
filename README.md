@@ -65,4 +65,4 @@ Given input files containing lists of rewards card transactions, compute how man
     (Best Bread, Fluffy Pizza) 1
     (Best Bread, Whitey Toothpaste) 1
     (Fluffy Pizza, Whitey Toothpaste) 1
-    Total Pairs: 12
+    Total Pairs: 11
