@@ -5,7 +5,7 @@ fi
 
 #project location dir
 if [[ -z "$PROJECT_DIR" ]] ; then
-    PROJECT_DIR=/home/isaac/cs419-distributed-systems/BoughtTogether
+    PROJECT_DIR=/home/isaac/cs419-distributed-systems/Project_1_MapReduce/sample_wordCount
 fi
 
 #build JAR
@@ -18,10 +18,10 @@ rm -f -d $PROJECT_DIR/output/ --recursive
 $HADOOP_DIR/sbin/start-dfs.sh
 
 #load input text file into HDFS
-$HADOOP_DIR/bin/hadoop fs -put $PROJECT_DIR/input/file.txt /file.txt
+$HADOOP_DIR/bin/hadoop fs -put $PROJECT_DIR/input/P1t2.txt /input.txt
 
 #run word count JAR
-$HADOOP_DIR/bin/hadoop jar $PROJECT_DIR/target/cs419-1-1.0-SNAPSHOT.jar BoughtTogether /file.txt /output/
+$HADOOP_DIR/bin/hadoop jar $PROJECT_DIR/target/cs419-1-1.0-SNAPSHOT.jar wordCount /input.txt /output/
 
 #get output from HDFS
 $HADOOP_DIR/bin/hadoop fs -get /output/ $PROJECT_DIR/
@@ -30,7 +30,7 @@ $HADOOP_DIR/bin/hadoop fs -get /output/ $PROJECT_DIR/
 cat $PROJECT_DIR/output/part-r-00000
 
 #clean HDFS
-$HADOOP_DIR/bin/hadoop fs -rm -r -skipTrash /file.txt
+$HADOOP_DIR/bin/hadoop fs -rm -r -skipTrash /input.txt
 $HADOOP_DIR/bin/hadoop fs -rm -r -skipTrash /output
 
 #stop node

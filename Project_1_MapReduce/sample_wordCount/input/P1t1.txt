@@ -1,0 +1,1 @@
+Write a Map Reduce program to dictionary sort the words in a given text file and out put a sorted list of words. Each word is preceeded by a serial number. When words appear multiple times list them once but include the number of times they appeared see example below. At the end of the output file list the number of unique words and total number of words.

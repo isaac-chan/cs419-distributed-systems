@@ -1,7 +1,7 @@
 *.jar
 *.class
-/sample_wordCount/target/*
-/sample_wordCount/.idea/*
+Project_1_MapReduce/sample_wordCount/target/*
+Project_1_MapReduce/sample_wordCount/.idea/*
 *.iml
-/BoughtTogether/target/*
-/BoughtTogether/.idea/*
+Project_1_MapReduce/BoughtTogether/target/*
+Project_1_MapReduce/BoughtTogether/.idea/*
