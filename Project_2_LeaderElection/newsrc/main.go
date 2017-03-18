@@ -5,8 +5,42 @@ import (
     "fmt"
     "time"
     "math/rand"
-//    "net/rpc"
+    "net/rpc"
+    "net"
+    "net/http"
+//    "errors"
 )
+
+//methods we want to export:
+//	leader heartbeats - periodically sends to followers for proof of life	
+//	candidate vote requests - sends to other servers for vote response
+//	follower votes 
+
+//incoming args
+type Args struct {
+    msg, vote string
+}
+
+//type to export
+type someMsg string
+
+//leader heartbeat comes as a string, just send it back to reset timeout
+func (t *someMsg) leader_heartbeats(args *Args, reply *string) error {
+    *reply = args.msg
+    return nil
+}
+
+//vote requests come as string, just send it back to increment internal vote count
+func (t *someMsg) candidate_vote_requests(args *Args, reply *string) error{
+    *reply = args.msg
+    return nil
+}
+
+//not sure when this is called - reply might be int?
+func (t *someMsg) voter_votes (args *Args, reply *string) error{
+    *reply = args.vote
+    return nil
+}
 
 func main() {
 
@@ -15,6 +49,17 @@ func main() {
         fmt.Println("usage:", os.Args[0], "thisAddress [thatAddress]...")
         os.Exit(1)
     }
+
+    // server calls for HTTP service
+    newSomeMsg := new(someMsg)
+    rpc.Register(newSomeMsg)
+    rpc.HandleHTTP()
+    l, e := net.Listen("tcp", ":1234")
+    if e != nil {
+	fmt.Println("listen error:", e)
+	os.Exit(1)
+    }
+    go http.Serve(l, nil)
 
     // process id
     pid := os.Getpid()
@@ -58,10 +103,31 @@ func main() {
     // vote timeout
     voteTimeout := time.Millisecond * time.Duration(1000)
 
-    // receive messages from leader on channel
-    // TODO
-    leaderMsg := make(chan error)
-//    leaderMsg := client.Go("", args, foo, nil)
+
+
+    /********receive messages from leader on channel*******/
+    //invoke client - client dials server. this makes the client channel
+    client, err := rpc.DialHTTP("tcp", thisAddress)
+    if err != nil {
+	fmt.Println("dialing:", err)
+	os.Exit(1)
+}
+
+    //this should asynchronously receive the message from the leader 
+    //should this be in event loop?
+    leaderMsg := make(chan error, 1)
+    leaderMsg = client.Call("someMsg.leader_heartbeats", "msg", "msg")
+    select {
+	case err := <-leaderMsg:
+	    fmt.Println("leader heartbeat response error:", err)
+	case <-time.After(heartbeatTimeout):
+	    //TODO
+	    //become candidate
+    }
+    fmt.Println("leader heartbeat received")
+    /*******************************************************/
+
+
 
     // event loop
     for {
@@ -80,7 +146,6 @@ func main() {
             case <-time.After(electionTimeout):
                 state = "candidate"
                 fmt.Println(pid, "ELECTION TIMEOUT")
-
             }
 
         case "candidate":
@@ -98,7 +163,7 @@ func main() {
             // receive messages from voters on channel
             // TODO
             voterMsg := make(chan error)
-//          voterMsg := client.Go("", args, foo, nil)
+//          voterMsg := client.Go("", args, foo, nil) 
 
             election: for {
                 select {
