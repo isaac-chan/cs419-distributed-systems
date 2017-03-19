@@ -5,40 +5,47 @@ import (
     "fmt"
     "time"
     "math/rand"
-    "net/rpc"
     "net"
-    "net/http"
-//    "errors"
+    "net/rpc"
 )
 
-//methods we want to export:
-//	leader heartbeats - periodically sends to followers for proof of life	
-//	candidate vote requests - sends to other servers for vote response
-//	follower votes 
-
-//incoming args
-type Args struct {
-    msg, vote string
+type Heartbeat struct {
+    LeaderID string
+    Term int
 }
 
-//type to export
-type someMsg string
+// type HeartbeatResponse struct {
+//     Success bool
+//     Term int
+// }
 
-//leader heartbeat comes as a string, just send it back to reset timeout
-func (t *someMsg) leader_heartbeats(args *Args, reply *string) error {
-    *reply = args.msg
+type VoteRequest struct {
+    CandidateID string
+    Term int
+}
+
+type VoteResponse struct {
+    VoteGranted bool
+    Term int
+}
+
+var leaderMsg chan Heartbeat
+//var followerMsg chan HeartbeatResponse
+var candidateMsg chan VoteRequest
+var voterMsg chan VoteResponse
+
+type Message int
+
+//
+func (t *Message) AppendEntries(heartbeat Heartbeat, heartbeatResponse *int) error {
+    leaderMsg <- heartbeat
     return nil
 }
 
-//vote requests come as string, just send it back to increment internal vote count
-func (t *someMsg) candidate_vote_requests(args *Args, reply *string) error{
-    *reply = args.msg
-    return nil
-}
-
-//not sure when this is called - reply might be int?
-func (t *someMsg) voter_votes (args *Args, reply *string) error{
-    *reply = args.vote
+//
+func (s *Message) RequestVote(voteRequest VoteRequest, voteResponse *VoteResponse) error {
+    candidateMsg <- voteRequest
+    *voteResponse = <-voterMsg
     return nil
 }
 
@@ -49,17 +56,6 @@ func main() {
         fmt.Println("usage:", os.Args[0], "thisAddress [thatAddress]...")
         os.Exit(1)
     }
-
-    // server calls for HTTP service
-    newSomeMsg := new(someMsg)
-    rpc.Register(newSomeMsg)
-    rpc.HandleHTTP()
-    l, e := net.Listen("tcp", ":1234")
-    if e != nil {
-	fmt.Println("listen error:", e)
-	os.Exit(1)
-    }
-    go http.Serve(l, nil)
 
     // process id
     pid := os.Getpid()
@@ -103,31 +99,19 @@ func main() {
     // vote timeout
     voteTimeout := time.Millisecond * time.Duration(1000)
 
+    //
+    leaderMsg = make(chan Heartbeat)
+//    followerMsg = make(chan HeartbeatResponse)
+    candidateMsg = make(chan VoteRequest)
+    voterMsg = make(chan VoteResponse)
 
-
-    /********receive messages from leader on channel*******/
-    //invoke client - client dials server. this makes the client channel
-    client, err := rpc.DialHTTP("tcp", thisAddress)
-    if err != nil {
-	fmt.Println("dialing:", err)
-	os.Exit(1)
-}
-
-    //this should asynchronously receive the message from the leader 
-    //should this be in event loop?
-    leaderMsg := make(chan error, 1)
-    leaderMsg = client.Call("someMsg.leader_heartbeats", "msg", "msg")
-    select {
-	case err := <-leaderMsg:
-	    fmt.Println("leader heartbeat response error:", err)
-	case <-time.After(heartbeatTimeout):
-	    //TODO
-	    //become candidate
+    // 
+    messages, error := net.Listen("tcp", thisAddress)
+    if error != nil {
+        fmt.Println(pid, "UNABLE TO LISTEN ON", thisAddress)
+        os.Exit(1)
     }
-    fmt.Println("leader heartbeat received")
-    /*******************************************************/
-
-
+    go rpc.Accept(messages)
 
     // event loop
     for {
@@ -141,6 +125,12 @@ func main() {
             // receive leader message before timeout
             case <-leaderMsg:
                 fmt.Println(pid, "LEADER MESSAGE RECEIVED")
+//                followerMsg <- HeartbeatResponse{Success: true, Term: term}
+
+            // receive vote request
+            case <-candidateMsg:
+                fmt.Println(pid, "CANDIDATE MESSAGE RECEIVED")
+                voterMsg <- VoteResponse{VoteGranted: true, Term: term}
 
             // otherwise begin election
             case <-time.After(electionTimeout):
@@ -158,12 +148,15 @@ func main() {
             votes = 1
 
             // request votes
-            // TODO
-
-            // receive messages from voters on channel
-            // TODO
-            voterMsg := make(chan error)
-//          voterMsg := client.Go("", args, foo, nil) 
+            // vreq := VoteRequest{CandidateID: thisAddress, Term: term}
+            // vresp := VoteResponse{}
+            // for _,address := range thatAddress {
+            //     client, error := rpc.Dial("tcp", address)
+            //     if error != nil {
+            //         fmt.Println(pid, "UNABLE TO DIAL", address)
+            //     }
+            //     client.Go("Message.AppendEntries", vreq, &vresp, nil)
+            // }
 
             election: for {
                 select {
@@ -200,7 +193,16 @@ func main() {
         case "leader":
 
             // send heartbeat
-            // TODO
+            hb := Heartbeat{LeaderID: thisAddress, Term: term}
+            for _,address := range thatAddress {
+                client, error := rpc.Dial("tcp", address)
+                if error != nil {
+                    fmt.Println(pid, "UNABLE TO DIAL", address)
+                } else {
+                    fmt.Println(pid, "SEND HEARTBEAT TO", address)
+                }
+                client.Go("Message.AppendEntries", hb, nil, nil)
+            }
 
             // wait
             time.Sleep(heartbeatTimeout)
