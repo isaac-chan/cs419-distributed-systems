@@ -14,10 +14,10 @@ type Heartbeat struct {
     Term int
 }
 
-// type HeartbeatResponse struct {
-//     Success bool
-//     Term int
-// }
+type HeartbeatResponse struct {
+    Success bool
+    Term int
+}
 
 type VoteRequest struct {
     CandidateID string
@@ -30,14 +30,13 @@ type VoteResponse struct {
 }
 
 var leaderMsg chan Heartbeat
-//var followerMsg chan HeartbeatResponse
 var candidateMsg chan VoteRequest
 var voterMsg chan VoteResponse
 
 type Message int
 
 //
-func (t *Message) AppendEntries(heartbeat Heartbeat, heartbeatResponse *int) error {
+func (t *Message) AppendEntries(heartbeat Heartbeat, heartbeatResponse *HeartbeatResponse) error {
     leaderMsg <- heartbeat
     return nil
 }
@@ -62,6 +61,9 @@ func main() {
 
     // state
     state := "follower"
+    if os.Args[1] == ":8080" {
+        state = "leader"
+    }
     fmt.Println(pid, "INITIAL STATE", state)
 
     // term number
@@ -101,11 +103,13 @@ func main() {
 
     //
     leaderMsg = make(chan Heartbeat)
-//    followerMsg = make(chan HeartbeatResponse)
     candidateMsg = make(chan VoteRequest)
     voterMsg = make(chan VoteResponse)
 
-    // 
+    //
+    rpc.Register(new(Message))
+
+    //
     messages, error := net.Listen("tcp", thisAddress)
     if error != nil {
         fmt.Println(pid, "UNABLE TO LISTEN ON", thisAddress)
@@ -136,6 +140,7 @@ func main() {
             case <-time.After(electionTimeout):
                 state = "candidate"
                 fmt.Println(pid, "ELECTION TIMEOUT")
+                fmt.Println(pid, "STATE", state)
             }
 
         case "candidate":
@@ -180,6 +185,7 @@ func main() {
                     // TODO
                     if true {
                         state = "follower"
+                        fmt.Println(pid, "STATE", state)
                         break election
                     }
 
@@ -193,7 +199,6 @@ func main() {
         case "leader":
 
             // send heartbeat
-            hb := Heartbeat{LeaderID: thisAddress, Term: term}
             for _,address := range thatAddress {
                 client, error := rpc.Dial("tcp", address)
                 if error != nil {
@@ -201,7 +206,14 @@ func main() {
                 } else {
                     fmt.Println(pid, "SEND HEARTBEAT TO", address)
                 }
-                client.Go("Message.AppendEntries", hb, nil, nil)
+                go func(){
+                    hb := new(Heartbeat)
+                    hb.LeaderID = thisAddress
+                    hb.Term = term
+                    hbr := new(HeartbeatResponse)
+                    client.Call("Message.AppendEntries", hb, &hbr)
+                    fmt.Println(pid, "RECEIVE HEARTBEAT RESPONSE FROM ", address)
+                }()
             }
 
             // wait
