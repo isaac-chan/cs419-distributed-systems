@@ -155,6 +155,7 @@ func main() {
                     client, error := rpc.Dial("tcp", address)
                     if error != nil {
                         fmt.Println(pid, "UNABLE TO DIAL", address)
+                        return
                     } else {
                         fmt.Println(pid, "REQUEST VOTE FROM", address)
                     }
@@ -209,6 +210,7 @@ func main() {
                     client, error := rpc.Dial("tcp", address)
                     if error != nil {
                         fmt.Println(pid, "UNABLE TO DIAL", address)
+                        return
                     } else {
                         fmt.Println(pid, "SEND HEARTBEAT TO", address)
                     }
