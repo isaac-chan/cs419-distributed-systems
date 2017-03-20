@@ -61,9 +61,6 @@ func main() {
 
     // state
     state := "follower"
-    if os.Args[1] == ":8080" {
-        state = "leader"
-    }
     fmt.Println(pid, "INITIAL STATE", state)
 
     // term number
@@ -153,15 +150,22 @@ func main() {
             votes = 1
 
             // request votes
-            // vreq := VoteRequest{CandidateID: thisAddress, Term: term}
-            // vresp := VoteResponse{}
-            // for _,address := range thatAddress {
-            //     client, error := rpc.Dial("tcp", address)
-            //     if error != nil {
-            //         fmt.Println(pid, "UNABLE TO DIAL", address)
-            //     }
-            //     client.Go("Message.AppendEntries", vreq, &vresp, nil)
-            // }
+            for _,address := range thatAddress {
+                go func(){
+                    client, error := rpc.Dial("tcp", address)
+                    if error != nil {
+                        fmt.Println(pid, "UNABLE TO DIAL", address)
+                    } else {
+                        fmt.Println(pid, "REQUEST VOTE FROM", address)
+                    }
+                    vreq := new(VoteRequest)
+                    vreq.CandidateID = thisAddress
+                    vreq.Term = term
+                    vresp := new(VoteResponse)
+                    client.Call("Message.RequestVote", vreq, &vresp)
+                    voterMsg <- *vresp
+                }()
+            }
 
             election: for {
                 select {
@@ -174,6 +178,7 @@ func main() {
                     // if majority of votes, go to leader state
                     if votes > clusterSize/2 {
                         state = "leader"
+                        fmt.Println(pid, "STATE", state)
                         break election
                     }
 
@@ -200,13 +205,13 @@ func main() {
 
             // send heartbeat
             for _,address := range thatAddress {
-                client, error := rpc.Dial("tcp", address)
-                if error != nil {
-                    fmt.Println(pid, "UNABLE TO DIAL", address)
-                } else {
-                    fmt.Println(pid, "SEND HEARTBEAT TO", address)
-                }
                 go func(){
+                    client, error := rpc.Dial("tcp", address)
+                    if error != nil {
+                        fmt.Println(pid, "UNABLE TO DIAL", address)
+                    } else {
+                        fmt.Println(pid, "SEND HEARTBEAT TO", address)
+                    }
                     hb := new(Heartbeat)
                     hb.LeaderID = thisAddress
                     hb.Term = term
