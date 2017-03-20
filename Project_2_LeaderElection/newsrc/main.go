@@ -151,7 +151,7 @@ func main() {
 
             // request votes
             for _,address := range thatAddress {
-                go func(){
+                go func(address string){
                     client, error := rpc.Dial("tcp", address)
                     if error != nil {
                         fmt.Println(pid, "UNABLE TO DIAL", address)
@@ -164,7 +164,7 @@ func main() {
                     vresp := new(VoteResponse)
                     client.Call("Message.RequestVote", vreq, &vresp)
                     voterMsg <- *vresp
-                }()
+                }(address)
             }
 
             election: for {
@@ -205,7 +205,7 @@ func main() {
 
             // send heartbeat
             for _,address := range thatAddress {
-                go func(){
+                go func(address string){
                     client, error := rpc.Dial("tcp", address)
                     if error != nil {
                         fmt.Println(pid, "UNABLE TO DIAL", address)
@@ -218,7 +218,7 @@ func main() {
                     hbr := new(HeartbeatResponse)
                     client.Call("Message.AppendEntries", hb, &hbr)
                     fmt.Println(pid, "RECEIVE HEARTBEAT RESPONSE FROM ", address)
-                }()
+                }(address)
             }
 
             // wait
